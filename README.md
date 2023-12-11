@@ -319,7 +319,7 @@ Broad properties are:
 - It is an ASCII protocol that requires a line-ending of CR+LF (i.e., two bytes of 0D 0A, alternatively as CTRL+M followed by CTRL+J)
 - Commands are case-sensitive
 - There is no remote echo (i.e., device does not echo back what was typed)
-- Most commands do not generate a response of any kind.  The only exception is the `XXX` command.
+- Most commands do not generate a response of any kind.  The only exceptions are the `XXX` and `OVER` commands.
 - Commands that set values update the device's screen immediately.
 
 The following commands are documented:
@@ -423,6 +423,6 @@ The format is described below.  Parenthesis indicate the corresponding command t
 The software supports uploading arbitrary waveform data to the device.  Unfortunately, this mechanism is not yet known.  A screenshot of the application show the following:
 
 - A transmission of `1511511511511511...511511511511511` where `...` is `511` repeating, followed by a line-break, followed by `OVER`
-- A receipt of 8 `OVER` concatenated without line-breaks.  This appears to be after the execution of an `XXX` command which prepended a 9th `OVER`
+- A receipt of 8 `OVER` concatenated without line-breaks.  These 8 appears to be after the execution of a prior `XXX` command which results in a total of 9 `OVER`s.
 
 What is presumed is that the software uploads the data in 8 chunks of 512 samples using an unknown command and executing `OVER` after each chunk to either confirm the upload was successful or that the device is still responsive.
