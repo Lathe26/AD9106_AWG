@@ -313,7 +313,7 @@ On Windows 10, the built-in drivers should automatically load.  However, some us
 Documentation for the protocol has been partially determined by translating the documentation from Chinese to English.  Both versions of the documentation are available in the `manuals` directory of the repository.  Other parts of the protocol, such as line-endings, is TBD.  The following commands are documented:
 
 - `XXX`
-    - Description: retrieve all the device's current Settings.  The response is a list of the below commands with their values, a series of numbers presume to SRAM contents, and ends with the word `OVER`.
+    - Description: retrieve all the device's current Settings.  The response is a list of the below commands with their values, a series of numbers presume to SRAM contents, and ends with the word `OVER`.
     - Example: `XXX`
 - `CHANNEL` + value
     - Description: sets the currently displayed channel?  Documentation is unclear.
