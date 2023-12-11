@@ -91,8 +91,8 @@ Extended comments:
 - SAWC is displayed as 6 bits instead of as a decimal value of 0-63.  For sawtooth up and down, the waveform's period is SAWC \* 91.0 usec, or more precisely is SAWC \* 16384 / (180 MHz).  The exception is that SAWC = 0 acts as the value 64, thus the period is 5.825 msec.  For triangle, the period is 2x as long.
 - SRAM predefined waveforms are sum of 1, 2, or 3 sine waves, respectively.  Variable x ranges from 0 to 360 degrees but in 4096 increments to produce 1 full cycle that fills the AD9106's SRAM.
     - SRAM 0 is the formula $`sin(x)`$
-    - SRAM 1 is the formula $`sin(x) + sin(2\*x)`$
-    - SRAM 2 is the formula $`sin(x) + sin(2\*x) + sin(3\*x)`$
+    - SRAM 1 is the formula $`sin(x) + sin(2x)`$
+    - SRAM 2 is the formula $`sin(x) + sin(2x) + sin(3x)`$
 - Odd behavior has been observed when some setting are set to 0, when the STD (start delay) is longer than the Pattern Period, and other unusual settings.
 - Most of the settings that affect each mode are displayed on their respective screens.  However, a handful of settings from one mode can affect another mode.  For example, Phase can be set in one mode and affect ChispDDS mode.
 
