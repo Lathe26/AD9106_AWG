@@ -21,7 +21,7 @@ The maximum frequencies for the AWG are:
 - 30MHz for sine 
 - ~11KHz for sawtooth up/down
 - ~5.5KHz for triangle
-- maximum frequency for arbitrary waveforms varies according to the length of the data in SRAM
+- Maximum frequency for arbitrary waveforms varies according to the length of the data in SRAM, but when the entire 4K SRAM is used then the frequency is 43.94 KHz
 
 Note that the AWG device exposes many, but not all possible features, of the AD9106 chip.
 
@@ -93,6 +93,8 @@ Extended comments:
     - SRAM 0 is the formula $`sin(x)`$
     - SRAM 1 is the formula $`sin(x) + sin(2x)`$
     - SRAM 2 is the formula $`sin(x) + sin(2x) + sin(3x)`$
+- The SA and SP values are 16-bit values but only the top 12-bits are used.  Thus, SA and SP are the start and stop sample numbers multiplied by 16 (aka, left shifted by 4 bits).  To playback the entire SRAM contents without any added pauses, set SA to 0000, SP to FFFF, and Mod CYC to 0x1000.
+- Mod CYC defines the pattern period, which is (Mod CYC) / (180 MHz).  For example, if Mod CYC is 0x1000, then the period is 22.7555 usec or 43.945 KHz.
 - Odd behavior has been observed when some setting are set to 0, when the STD (start delay) is longer than the Pattern Period, and other unusual settings.
 - Most of the settings that affect each mode are displayed on their respective screens.  However, a handful of settings from one mode can affect another mode.  For example, Phase can be set in one mode and affect ChispDDS mode.
 
@@ -310,16 +312,26 @@ On Windows 10, the built-in drivers should automatically load.  However, some us
 
 ## Protocol
 
-Documentation for the protocol has been partially determined by translating the documentation from Chinese to English.  Both versions of the documentation are available in the `manuals` directory of the repository.  Other parts of the protocol, such as line-endings, is TBD.  The following commands are documented:
+Documentation for the protocol has been mostly determined by translating the documentation from Chinese to English.  Both versions of the documentation are available in the `manuals` directory of the repository.
+
+Broad properties are:
+
+- It is an ASCII protocol that requires a line-ending of CR+LF (i.e., two bytes of 0D 0A, alternatively as CTRL+M followed by CTRL+J)
+- Commands are case-sensitive
+- There is no remote echo (i.e., device does not echo back what was typed)
+- Most commands do not generate a response of any kind.  The only exception is the `XXX` command.
+- Commands that set values update the device's screen immediately.
+
+The following commands are documented:
 
 - `XXX`
-    - Description: retrieve all the device's current Settings.  The response is a list of the below commands with their values, a series of numbers presume to SRAM contents, and ends with the word `OVER`.
+    - Description: retrieve all the device's current Settings.  The response is described later but to summarize, it is a list of the most of commands with their values, a series of numbers for a few specific commands, and ends with the word `OVER`.
     - Example: `XXX`
 - `CHANNEL` + value
-    - Description: sets the currently displayed channel?  Documentation is unclear.
-    - Example: `CHANNEL4` sets CH4 to be displayed(?)
+    - Description: sets the currently displayed channel.
+    - Example: `CHANNEL4` sets CH4 to be displayed
 - `MOD` + channel + value
-    - Description: sets a channel's mode (i.e., to Signal, Sawtooth, ChispDDS, etc.)
+    - Description: sets a channel's mode (i.e., to Signal, Sawtooth, ChispDDS, etc.).  Valid values range from 1 - 7, corresponding to the modes Signal thru RAM Modu, respectively.
     - Example: `MOD24` sets CH2 to mode 4
 - `FREQ` + value
     - Description: set the sine wave frequency in Hz
@@ -331,14 +343,14 @@ Documentation for the protocol has been partially determined by translating the 
     - Description: set voltage amplitude for a channel (i.e., the "Power" setting)
     - Example: `AMP311000` sets CH3 to an amplitude of 11000
 - `STE` + channel + value
-    - Description: set channel to sawtooth up, down, or triangle (i.e., the "S" setting)
+    - Description: set channel to sawtooth up, down, triangle, or nop (i.e., the "S" setting) using values 0 - 3, respectively.
     - Example: `STE12` sets CH1 to sawtooth waveform 2
 - `SAW` + channel + value
-    - Description: sets the sawtooth or triangle period for a channel (i.e., the "SAWC" setting)
+    - Description: sets the sawtooth or triangle period for a channel (i.e., the "SAWC" setting).  Valid values are 0 - 63
     - Example: `SAW232` sets CH2 to a value of 32
 - `SRAM` + value
-    - Description: sets SRAM data
-    - Example: `SRAM` "sets the RAM to 1" (documentation appears incomplete)
+    - Description: sets SRAM to one of the predefined waveforms of 0 - 2
+    - Example: `SRAM1` sets the SRAM to waveform 1
 - `STA` + channel + value
     - Description: sets a channel's SRAM starting address (i.e., the "SA" setting)
     - Example: `STA40000` sets channel CH4 to 0x0000 starting address
@@ -354,3 +366,63 @@ Documentation for the protocol has been partially determined by translating the 
 - `YCC` + channel + value
     - Description: sets how many sine wave cycles occur during a Mod CYC (i.e., the "CYC" setting).  Documentation spells this as YCC, not the expected CYC.
     - Example: `YCC30010` sets CH3 to have 10 sine wave cycles
+- `OVER`
+    - Description: causes the device to respond with an `OVER`, likely intended as a ping command.
+    - Example: `OVER`
+
+An example response for `XXX` is:
+
+```
+POWER:16383
+Phase:000
+SAWC:000001
+SA:0000
+SP:FFFF
+STD:0000
+CYC:0020
+POWER:16383
+Phase:000
+SAWC:000000
+SA:0000
+SP:FFFF
+STD:0000
+CYC:000B
+POWER:00000
+Phase:000
+SAWC:000000
+SA:0000
+SP:0000
+STD:0000
+CYC:0000
+POWER:00000
+Phase:000
+SAWC:000001
+SA:0000
+SP:FFFF
+STD:6000
+CYC:0001
+FRE:00,000,000Hz
+Mod_CYC:0x1000
+0200141101
+OVER
+```
+
+The format is described below.  Parenthesis indicate the corresponding command that sets the value in the response, when it differs from the response.
+
+- 4 sections corresponding to CH1 thru CH4 with the current values for each channel.  The values are: POWER (AMP), Phase (PHS), SAWC (SAW), SA (STA), SP (STP), STD, and CYC (YCC)
+- A section for the global values of: FRE (FREQ), Mod_CYC (YCYM)
+- A 10 digit number where:
+    - Digits 1-4 are each channel's S (STE) value
+    - Digits 5-8 are each channel's mode (MOD)
+    - Digit 9 is the global SRAM value
+    - Digit 10 is the currently displayed channel where values 0 - 3 correspond to CH1 - CH4.  In contrast, setting this value is done using CHANNEL1 - CHANNEL4, respectively.
+- `OVER` is output, but it is not terminated by CR+LF
+
+## Unknowns
+
+The software supports uploading arbitrary waveform data to the device.  Unfortunately, this mechanism is not yet known.  A screenshot of the application show the following:
+
+- A transmission of `1511511511511511...511511511511511` where `...` is `511` repeating, followed by a line-break, followed by `OVER`
+- A receipt of 8 `OVER` concatenated without line-breaks.  This appears to be after the execution of an `XXX` command which prepended a 9th `OVER`
+
+What is presumed is that the software uploads the data in 8 chunks of 512 samples using an unknown command and executing `OVER` after each chunk to either confirm the upload was successful or that the device is still responsive.
