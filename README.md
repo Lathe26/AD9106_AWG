@@ -23,7 +23,7 @@ The maximum frequencies for the AWG are:
 - ~5.5KHz for triangle
 - maximum frequency for arbitrary waveforms varies according to the length of the data in SRAM
 
-Note that the AWG device exposes many but, not all possible features, of the AD9106 chip.
+Note that the AWG device exposes many, but not all possible features, of the AD9106 chip.
 
 As of firmware 1.1, some notable features not exposed are:
 - adjustable DC voltage offsets
