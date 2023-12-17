@@ -79,7 +79,7 @@ Phase     | DDSx_PHASE     | 0 - 360         | per output | Phase of the sine wa
 Power     | DACx_DIG_GAIN  | 0 - 16383       | per output | Amplitude of the wave's voltage (not power), values are linear, max is +/- 0.8 V except for Noise mode
 S         | SAW_TYPEx      | UP, DW, TR, NOP | per output | Whether to perform sawtooth up, sawtooth down, triangle, or no waveform
 SAWC      | SAW_STEPx      | 6 bits          | per output | Period of sawtooth or triangle wave.  Only 64 values (see below)
-SRAM      | SRAM           | 0 - 2           | global     | Which of 3 predefined waveforms to fill SRAM with (see below)
+SRAM      | SRAM           | 0 - 2           | global     | Which of 3 stored waveforms to fill SRAM with (see below)
 SA        | START_ADDRx    | 0000 - ffff     | per output | Starting address to use for SRAM data, value is 0-based
 SP        | STOP_ADDRx     | 0000 - ffff     | per output | Ending address to use for SRAM data, value is 0-based
 Mod CYC   | PATTERN_PERIOD | 0000 - ffff     | global     | Length of Pattern Period in 180 MHz clock ticks
@@ -89,11 +89,12 @@ CYC       | DDS_CYCx       | 0000 - ffff     | per output | Number of sine, sawt
 Extended comments:
 - Frequency is rounded *down* to the nearest multiple of 10.73 Hz.  Thus, if the on-screen setting is 21 Hz then the output is actually 10.73 Hz while 22 Hz on-screen generates 21.46 Hz output.
 - SAWC is displayed as 6 bits instead of as a decimal value of 0-63.  For sawtooth up and down, the waveform's period is SAWC \* 91.0 usec, or more precisely is SAWC \* 16384 / (180 MHz).  The exception is that SAWC = 0 acts as the value 64, thus the period is 5.825 msec.  For triangle, the period is 2x as long.
-- SRAM predefined waveforms are sum of 1, 2, or 3 sine waves, respectively.  Variable x ranges from 0 to 360 degrees but in 4096 increments to produce 1 full cycle that fills the AD9106's SRAM.
+- SRAM waveforms are loaded from the device's internal FLASH.  There are 3 waveforms to choose from.  They are prepopulated from the factory but are can be overwritten by sending arbitrary waveform data to the device over USB.
+- From the factory, the SRAM waveforms are sum of 1, 2, or 3 sine waves, respectively.  Variable x ranges from 0 to 360 degrees but in 4096 increments to produce 1 full cycle that fills the AD9106's SRAM.
     - SRAM 0 is the formula $`sin(x)`$
     - SRAM 1 is the formula $`sin(x) + sin(2x)`$
     - SRAM 2 is the formula $`sin(x) + sin(2x) + sin(3x)`$
-- The SA and SP values are 16-bit values but only the top 12-bits are used.  Thus, SA and SP are the start and stop sample numbers multiplied by 16 (aka, left shifted by 4 bits).  To playback the entire SRAM contents without any added pauses, set SA to 0000, SP to FFFF, and Mod CYC to 0x1000.
+- The SA and SP values are 16-bit values but only the top 12-bits are used.  Thus, SA and SP are the start and stop sample numbers multiplied by 16 (aka, left shifted by 4 bits).  - To playback the entire SRAM contents without any added pauses, set SA to 0000, SP to FFFF, and Mod CYC to 0x1000.
 - Mod CYC defines the pattern period, which is (Mod CYC) / (180 MHz).  For example, if Mod CYC is 0x1000, then the period is 22.7555 usec or 43.945 KHz.
 - Odd behavior has been observed when some setting are set to 0, when the STD (start delay) is longer than the Pattern Period, and other unusual settings.
 - Most of the settings that affect each mode are displayed on their respective screens.  However, a handful of settings from one mode can affect another mode.  For example, Phase can be set in one mode and affect ChispDDS mode.
@@ -163,6 +164,18 @@ Noise example using narrow time range, single-shot triggered, and quieter CH3 (w
 
 ![Noise output, narrow time range, quieter CH3](docs/Output_Noise_CH3_Narrow_Single_Shot.png)
 
+Spectrum analysis of CH1, using narrow frequency results of operational range (1 MHz to 30 MHz):
+
+![Spectrum analysis of CH1, from 1 MHz to 30 MHz](docs/SA_Noise_Output_CH1_30MHz.bmp)
+
+Spectrum analysis of CH1, using 100 averaged narrow frequency results of operational range (1 MHz to 30 MHz):
+
+![Spectrum analysis of CH1, average of 100 sweeps from 1 MHz to 30 MHz](docs/SA_Noise_Output_CH1_30MHz_100_Averages.bmp)
+
+Spectrum analysis of CH1, using wide frequency results (1 MHz to 221 MHz):
+
+![Spectrum analysis of CH1, from 1 MHz to 221 MHz](docs/SA_Noise_Output_CH1.bmp)
+
 
 ### Random Mode
 ![Signal screenshot](docs/Screenshot_4_-_Random.jpg)
@@ -170,17 +183,17 @@ Noise example using narrow time range, single-shot triggered, and quieter CH3 (w
 - On-screen settings: Power, SRAM, SA, SP, Mod CYC
 - AD9106 register fields: WAV_SELx = 0
 
-SRAM waveform 0 example (with Mod_CYC = 0x2000 to be 2x the length of the entire SRAM waveform, SA = 0x0000 and SP = 0xFFFF to playback the entire SRAM waveform, Power = 16383):
+SRAM factory waveform 0 example (with Mod_CYC = 0x2000 to be 2x the length of the entire SRAM waveform, SA = 0x0000 and SP = 0xFFFF to playback the entire SRAM waveform, Power = 16383):
 
-![SRAM waveform 0](docs/Output_Random_SRAM_0.png)
+![SRAM factory waveform 0](docs/Output_Random_SRAM_0.png)
 
-SRAM waveform 1 (with Mod_CYC = 0x2000 to be 2x the length of the entire SRAM waveform, SA = 0x0000 and SP = 0xFFFF to playback the entire SRAM waveform, Power = 16383):
+SRAM factory waveform 1 (with Mod_CYC = 0x2000 to be 2x the length of the entire SRAM waveform, SA = 0x0000 and SP = 0xFFFF to playback the entire SRAM waveform, Power = 16383):
 
-![SRAM waveform 1](docs/Output_Random_SRAM_1.png)
+![SRAM factory waveform 1](docs/Output_Random_SRAM_1.png)
 
-SRAM waveform 2 (with Mod_CYC = 0x2000 to be 2x the length of the entire SRAM waveform, SA = 0x0000 and SP = 0xFFFF to playback the entire SRAM waveform, Power = 16383):
+SRAM factory waveform 2 (with Mod_CYC = 0x2000 to be 2x the length of the entire SRAM waveform, SA = 0x0000 and SP = 0xFFFF to playback the entire SRAM waveform, Power = 16383):
 
-![SRAM waveform 2](docs/Output_Random_SRAM_2.png)
+![SRAM factory waveform 2](docs/Output_Random_SRAM_2.png)
 
 
 ### ChispSAW Mode
@@ -219,17 +232,17 @@ Sawtooth UP with STD delay = 0x2000 example (with Mod CYC 0xFFFF, SAWC 000001, C
 
 7 RAM Modu for SRAM 0, 1, 2.  CYC 0x0020 (set in another mode), Frequency 1 MHz, Mod CYC 0x2000, Power 16383
 
-SRAM 0 AM modulation of 1MHz sine wave example (with Mod CYC = 0x2000, Power = 16383, and CYC = 0x0020 but set in a different mode):
+SRAM factory waveform 0 AM modulation of 1MHz sine wave example (with Mod CYC = 0x2000, Power = 16383, and CYC = 0x0020 but set in a different mode):
 
-![SRAM 0 AM modulation of 1MHz sine wave](docs/Ouput_RAMModu_SRAM_0.png)
+![SRAM factory waveform 0 AM modulation of 1MHz sine wave](docs/Ouput_RAMModu_SRAM_0.png)
 
-SRAM 1 AM modulation of 1MHz sine wave example (with Mod CYC = 0x2000, Power = 16383, and CYC = 0x0020 but set in a different mode):
+SRAM factory waveform 1 AM modulation of 1MHz sine wave example (with Mod CYC = 0x2000, Power = 16383, and CYC = 0x0020 but set in a different mode):
 
-![SRAM 1 AM modulation of 1MHz sine wave](docs/Ouput_RAMModu_SRAM_1.png)
+![SRAM factory waveform 1 AM modulation of 1MHz sine wave](docs/Ouput_RAMModu_SRAM_1.png)
 
-SRAM 2 AM modulation of 1MHz sine wave example (with Mod CYC = 0x2000, Power = 16383, and CYC = 0x0020 but set in a different mode):
+SRAM factory waveform 2 AM modulation of 1MHz sine wave example (with Mod CYC = 0x2000, Power = 16383, and CYC = 0x0020 but set in a different mode):
 
-![SRAM 2 AM modulation of 1MHz sine wave](docs/Ouput_RAMModu_SRAM_2.png)
+![SRAM factory waveform 2 AM modulation of 1MHz sine wave](docs/Ouput_RAMModu_SRAM_2.png)
 
 # Output
 
@@ -261,19 +274,19 @@ Measured noise output in volts peak-to-peak and mV RMS for various frequency set
 
 ## Signal Noise
 
-Spectral analysis of sine wave output on CH1, using Signal Mode with Power setting of 16383, for 5, 10, 20, and 30 MHz frequencies.  60 dB attenuation used to avoid clipping by the spectrum analyzer.  Notes:
+Spectrum analysis of sine wave output on CH1, using Signal Mode with Power setting of 16383, for 5, 10, 20, and 30 MHz frequencies.  60 dB attenuation used to avoid clipping by the spectrum analyzer.  Notes:
 
 - Observer the -35 dBm of 180 MHz noise and the 2 neighboring harmonics.
 - The MHz readings for the peaks are only accurate to +/- a few 100 kHz due to horizontal screen resolution.
 - The below were measured *without* the use of a Faraday cage.  Thus some external signals may have leaked into the circuit, such a 94.9 FM radio station.
 
-![Spectral analysis of 5 MHz sine wave on CH1](docs/SA_Sin_CH1_05MHz_-60dBm_Atten.bmp)
+![Spectrum analysis of 5 MHz sine wave on CH1](docs/SA_Sin_CH1_05MHz_-60dBm_Atten.bmp)
 
-![Spectral analysis of 10 MHz sine wave on CH1](docs/SA_Sin_CH1_10MHz_-60dBm_Atten.bmp)
+![Spectrum analysis of 10 MHz sine wave on CH1](docs/SA_Sin_CH1_10MHz_-60dBm_Atten.bmp)
 
-![Spectral analysis of 20 MHz sine wave on CH1](docs/SA_Sin_CH1_20MHz_-60dBm_Atten.bmp)
+![Spectrum analysis of 20 MHz sine wave on CH1](docs/SA_Sin_CH1_20MHz_-60dBm_Atten.bmp)
 
-![Spectral analysis of 30 MHz sine wave on CH1](docs/SA_Sin_CH1_30MHz_-60dBm_Atten.bmp)
+![Spectrum analysis of 30 MHz sine wave on CH1](docs/SA_Sin_CH1_30MHz_-60dBm_Atten.bmp)
 
 <BR/>
 The various channels have a different amount of inherent noise.  The following inherent noise measurements from one AWG device when no waveform was output, specifically a sine wave of 0 Hz and Power setting of 0.  No attenuators were used.
@@ -291,15 +304,15 @@ AC coupled inherent noise, displayed with 20 mV DC offsets, on a wide time base:
 
 ![Inherent noise, wide time base](docs/Signal_Noise_AC_Coupled_Wide.png)
 
-Spectral analysis of the above inherent noise was performed for CH1 thru CH4.  A lower noise floor was possible here when compared to the prior sine wave output spectral analysis (i.e., the dBm scale on the right side shifted to lower values).
+Spectrum analysis of the above inherent noise was performed for CH1 thru CH4.  A lower noise floor was possible here when compared to the prior sine wave output spectrum analysis (i.e., the dBm scale on the right side shifted to lower values).
 
-![Inherent noise spectral analysis for CH1](docs/SA_Signal_Noise_CH1.bmp)
+![Inherent noise spectrum analysis for CH1](docs/SA_Signal_Noise_CH1.bmp)
 
-![Inherent noise spectral analysis for CH2](docs/SA_Signal_Noise_CH2.bmp)
+![Inherent noise spectrum analysis for CH2](docs/SA_Signal_Noise_CH2.bmp)
 
-![Inherent noise spectral analysis for CH3](docs/SA_Signal_Noise_CH3.bmp)
+![Inherent noise spectrum analysis for CH3](docs/SA_Signal_Noise_CH3.bmp)
 
-![Inherent noise spectral analysis for CH4](docs/SA_Signal_Noise_CH4.bmp)
+![Inherent noise spectrum analysis for CH4](docs/SA_Signal_Noise_CH4.bmp)
 
 
 # USB communication
@@ -325,7 +338,7 @@ Broad properties are:
 The following commands are documented:
 
 - `XXX`
-    - Description: retrieve all the device's current Settings.  The response is described later but to summarize, it is a list of the most of commands with their values, a series of numbers for a few specific commands, and ends with the word `OVER`.
+    - Description: retrieve all the device's current Settings.  The response is described later but to summarize, it is a list of the most of commands with their values, then a series of numbers for a few specific commands, and ends with the word `OVER`.
     - Example: `XXX`
 - `CHANNEL` + value
     - Description: sets the currently displayed channel.
@@ -349,7 +362,7 @@ The following commands are documented:
     - Description: sets the sawtooth or triangle period for a channel (i.e., the "SAWC" setting).  Valid values are 0 - 63
     - Example: `SAW232` sets CH2 to a value of 32
 - `SRAM` + value
-    - Description: sets SRAM to one of the predefined waveforms of 0 - 2
+    - Description: sets SRAM to one of the stored waveforms of 0 - 2
     - Example: `SRAM1` sets the SRAM to waveform 1
 - `STA` + channel + value
     - Description: sets a channel's SRAM starting address (i.e., the "SA" setting)
@@ -367,8 +380,37 @@ The following commands are documented:
     - Description: sets how many sine wave cycles occur during a Mod CYC (i.e., the "CYC" setting).  Documentation spells this as YCC, not the expected CYC.
     - Example: `YCC30010` sets CH3 to have 10 sine wave cycles
 - `OVER`
-    - Description: causes the device to respond with an `OVER`, likely intended as a ping command.
+    - Description: causes the device to respond with an `OVER` (no CR or LF follows the response).  By itself, it can be used as a ping command.  After loading abitrary waveform data in to the SRAM, the `OVER` command makes the data go active on the AD9106 outputs.
     - Example: `OVER`
+- `Z` + sram_block + samples
+    - Description: sets arbitrary waveform data with the data into the currently active SRAM value (i.e., SRAM 0, 1, or 2).  The samples are loaded starting at register address 0x6000 + 64 \* sram_block.  Put another way, the 4096 SRAM samples are grouped into 64 blocks of 64 samples.  "sram_block" is a 2-digit decimal number that can range from 00 thru 63.  "samples" is a series of 3-digit decimal numbers in the range of 000 thru 511.  000 is the value for the most negative voltage and 511 is the value for the most positive voltage.  The maximum number of samples in a single `Z` command is 64 samples; fewer than 64 numbers is allowed.  Not including the CR and LF bytes, the maximum length of a `Z` command is 195 characters (1 + 2 + 64\*3).  To fill all of the SRAM, a series of `Z` commands are issued for all 64 blocks, possibly needing a 60+ ms pause between each command, followed by a single `OVER` command to make the data active.  Data uploaded to the device is stored in FLASH for the next time the device is booted up, though exceptions to this have been observed.
+    - Example: `Z00000000000000000000000000000000000000000000000000511511511511511511511511511511511511511511511511000000000000000000000000511511511511511511511511000000000000511511511511000000511511000511000511` is a min-max series of square waves.  The 1st square wave is 32 samples, the 2nd is 16 samples, the 3rd is 8 samples, the 4th is 4 samples, and the 5th and 6th square waves are 2 samples each.
+- `Clear`
+    - Description: sets all values to 0 and sets the devices to display CH1.  Previously uploaded SRAM data is *not* erased or returned to the factory waveforms.  This command is the only one that uses mixed-case letters.
+    - Example: `Clear`
+- `ALL` + multiple_commands + `END`
+    - Description: purpose is unclear, but `ALL` and `END` will bracket a series when the official software's "Set All" button is clicked.  It does not set all channels to the same values nor does it delay updating the output until the `END` is send.
+    - Example: see below
+
+An example using the `ALL` and `END` commands is:
+
+```
+ALL
+CHANNEL1
+PHS1000
+AMP100000
+SAW1000000
+STE13
+STA10000
+STP10000
+MOD11
+STD10000
+YCC10000
+FREQ00000000
+YCYM0001
+SRAM0
+END
+```
 
 An example response for `XXX` is:
 
@@ -407,7 +449,7 @@ Mod_CYC:0x1000
 OVER
 ```
 
-The format is described below.  Parenthesis indicate the corresponding command that sets the value in the response, when it differs from the response.
+The response format for `XXX` is described below.  Parenthesis indicate the corresponding command that sets the value in the response, when it differs from the response.
 
 - 4 sections corresponding to CH1 thru CH4 with the current values for each channel.  The values are: POWER (AMP), Phase (PHS), SAWC (SAW), SA (STA), SP (STP), STD, and CYC (YCC)
 - A section for the global values of: FRE (FREQ), Mod_CYC (YCYM)
@@ -417,12 +459,3 @@ The format is described below.  Parenthesis indicate the corresponding command t
     - Digit 9 is the global SRAM value
     - Digit 10 is the currently displayed channel where values 0 - 3 correspond to CH1 - CH4.  In contrast, setting this value is done using CHANNEL1 - CHANNEL4, respectively.
 - `OVER` is output, but it is not terminated by CR+LF
-
-## Unknowns
-
-The software supports uploading arbitrary waveform data to the device.  Unfortunately, this mechanism is not yet known.  A screenshot of the application show the following:
-
-- A transmission of `1511511511511511...511511511511511` where `...` is `511` repeating, followed by a line-break, followed by `OVER`
-- A receipt of 8 `OVER` concatenated without line-breaks.  These 8 appears to be after the execution of a prior `XXX` command which results in a total of 9 `OVER`s.
-
-What is presumed is that the software uploads the data in 8 chunks of 512 samples using an unknown command and executing `OVER` after each chunk to either confirm the upload was successful or that the device is still responsive.
