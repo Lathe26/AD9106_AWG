@@ -392,7 +392,7 @@ The following commands are documented:
     - Description: purpose is unclear, but `ALL` and `END` will bracket a series when the official software's "Set All" button is clicked.  It does not set all channels to the same values nor does it delay updating the output until the `END` is send.
     - Example: see below
 
-An example using the `ALL` and `END` commands is:
+An example using the `ALL` and `END` commands is:
 
 ```
 ALL
