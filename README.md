@@ -31,6 +31,11 @@ As of firmware 1.1, some notable features not exposed are:
 - creation of arbitrary waveforms via the device's touch screen, though there are 3 pre-stored waveforms available via the touch screen and arbitrary data can be uploaded over USB
 
 
+# Tools
+
+Tools for using the AD9106 AWG are available in the `tools` folder of this repository.  See the `README.md` in that folder.
+
+
 # Manual Operation
 
 
