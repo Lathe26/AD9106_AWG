@@ -47,6 +47,7 @@ Fourier Series approximation of a Sawtooth Down wave, using the 1st 16 sin co-ef
 `python awg_ad9106.py -d -p COM4 --wav "Fourier Frequencies.wav" --scale-auto --column-weights 1.0 0.0 0.5 0.0 0.333333333 0.0 0.25 0.0 0.20 0.0 0.16666666666 0.0 0.142857142857 0.0 0.125 0.0 0.111111111111 0.0 0.1 0.0 0.090909090909 0.0 0.0833333333333333 0.0 0.0769230769230 0.0 0.071428571428 0.0 0.06666666666 0.0 0.0625`
 
 Fourier Series approximation of a Square wave, using the 1st 16 sin co-efficients as the column weights, which are 1, 0, 1/3, 0, 1/5, 0, 1/7, ... 1/(2n+1).  Co-efficients for cos terms are 0.0
+
 `python awg_ad9106.py -d -p COM4 --wav "Fourier Frequencies.wav" --scale-auto --column-weights 1.0 0.0 0.0 0.0 0.333333333 0.0 0.0 0.0 0.20 0.0 0.0 0.0 0.142857142857 0.0 0.0 0.0 0.111111111111 0.0 0.0 0.0 0.090909090909 0.0 0.0 0.0 0.0769230769230 0.0 0.0 0.0 0.06666666666 0.0 0.0`
 
 ## Future Tool Ideas
