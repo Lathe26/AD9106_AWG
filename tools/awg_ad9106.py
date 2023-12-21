@@ -792,7 +792,7 @@ def _main():
     args = _parse_command_line()
 
     if args.list_ports:
-        print("Available serial ports (AWG AD9106 is has USB VID & PID of 0x0483 & 0x5740):" )
+        print("Available serial ports (AWG AD9106 has USB VID & PID of 0x0483 & 0x5740):" )
         for port in serial.tools.list_ports.comports( True ):
             print(  '   Serial device:')
             print( f'      Device        : {port.device}')
