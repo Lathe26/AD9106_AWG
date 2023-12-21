@@ -180,13 +180,13 @@ class AWG_AD9106:   # pylint: disable=invalid-name
         """Loads and processes CSV file numbers, returns a list SRAM integer values.
         """
         # pylint: disable=too-many-branches
-        CSV_SNIFF_LENGTH = 1024
+        CSV_SNIFF_LENGTH = 16384
 
         finalOutput = []
 
         with open(filename, newline='', encoding='utf-8-sig') as csvfile:
             # Sniff the CSV for its dialect of CSV format
-            dialectSniffed = csv.Sniffer().sniff(csvfile.read(CSV_SNIFF_LENGTH))
+            dialectSniffed = csv.Sniffer().sniff(csvfile.read(CSV_SNIFF_LENGTH), delimiters=',')
             csvfile.seek(0)
 
             hasHeader = self._hasCsvHeader
